@@ -39,7 +39,9 @@ payload]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
 					<error-handler >
-						<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="e2ed4566-27ff-4168-aac3-3ebad12008e2" />
+						<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="e2ed4566-27ff-4168-aac3-3ebad12008e2" >
+							<logger level="INFO" doc:name="Logger" doc:id="e01e7aea-b3d6-4e17-9af2-b97fe56601f1" message="dummy logger"/>
+						</on-error-continue>
 					</error-handler>
 				</try>
 			</route>
@@ -64,6 +66,7 @@ payload]]></ee:set-payload>
 			</route>
 		</scatter-gather>
 		<logger level="INFO" doc:name="Logger" doc:id="93734eed-aca2-4b28-96d2-b76df1b6c2a2" message="End Logger"/>
+		<logger level="INFO" doc:name="Logger" doc:id="21c16383-83f5-4edf-abbc-2e877ea14c04" message="dummy"/>
 		<ee:transform doc:name="Transform Message" doc:id="dc15a405-76b1-4c2e-844b-600944ba77e0">
 					<ee:message>
 						<ee:set-payload><![CDATA[%dw 2.0
