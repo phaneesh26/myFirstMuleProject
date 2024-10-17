@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="aa944402-263f-4340-b6f9-5b573138667b" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="87b3ddf4-d4ca-449c-a6b7-e75d4bedb951" >
+		<http:request-connection host="api.openweathermap.org" />
+	</http:request-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="d9e5ecd6-0e7c-486e-9294-036765bf4808" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="root1234" database="mule1" />
+	</db:config>
+	<flow name="scatter-gather-exampleFlow" doc:id="f901968e-4a08-4ef6-9cdb-453f0b763dd1" >
+		<http:listener doc:name="Listener" doc:id="b818607a-b6bd-4737-8de6-202afdbbf0ec" config-ref="HTTP_Listener_config" path="/sg"/>
+		<logger level="INFO" doc:name="Logger" doc:id="7c446f24-dd1d-4137-884e-707c2fe3f630" message="Start Logger---#[payload]"/>
+		<scatter-gather doc:name="Scatter-Gather" doc:id="ebf5bc43-5b68-4974-bbeb-8e1daff14df4" maxConcurrency="1" target="abc">
+			<route >
+				<try doc:name="Try" doc:id="571f70e9-2f48-406c-81e0-b96dad219c54" >
+					<http:request doc:name="Request" doc:id="f426212d-99b6-410f-80e2-fb502982cea8" path="/data/2.5/weather" config-ref="HTTP_Request_configuration">
+					<http:query-params><![CDATA[#[output application/java
+---
+{
+	"q" : "hyderabad",
+	"APPID" : "776ca0728cbc930ac77f9b35c6158448"
+}]]]></http:query-params>
+				</http:request>
+					<logger level="INFO" doc:name="Logger" doc:id="d25a46b3-c5df-4d37-8ca3-ae46c549ecbc" message="#[payload]" />
+					<ee:transform doc:name="Transform Message" doc:id="13f70388-4569-47ea-bbb3-c609c5604e4d">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+					<error-handler >
+						<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="e2ed4566-27ff-4168-aac3-3ebad12008e2" />
+					</error-handler>
+				</try>
+			</route>
+			<route >
+				<try doc:name="Try" doc:id="178ff4f7-703d-4140-930c-e5fa173e55e6" >
+					<db:select doc:name="Select" doc:id="28334086-4fec-4409-931b-fef3becb078c" config-ref="Database_Config">
+					<db:sql><![CDATA[select * from student_table]]></db:sql>
+				</db:select>
+					<logger level="INFO" doc:name="Logger" doc:id="980e736e-7277-4c35-a59a-550595462b5c" message="#[payload]" />
+					<ee:transform doc:name="Transform Message" doc:id="170a8ae3-a8fd-44a8-a602-e5c2168c1803">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+					<error-handler >
+						<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="03d33712-fe2c-4f42-8aa8-791d7e451263" />
+					</error-handler>
+				</try>
+			</route>
+		</scatter-gather>
+		<logger level="INFO" doc:name="Logger" doc:id="93734eed-aca2-4b28-96d2-b76df1b6c2a2" message="End Logger"/>
+		<ee:transform doc:name="Transform Message" doc:id="dc15a405-76b1-4c2e-844b-600944ba77e0">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+ vars.abc]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+	</flow>
+</mule>
